@@ -35,8 +35,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// print the working directory
-	fmt.Println("Working directory: ", wd)
+	// Print the working directory
+	fmt.Println("Working directory:", wd)
 
 	// Open the SQLite database file
 	db, err := sql.Open("sqlite", wd+"/database.db")
@@ -48,16 +48,51 @@ func main() {
 		}
 	}(db)
 
-	//  Create the Gin router
+	// Create the Gin router
 	r := gin.Default()
 
-	// Create the routes
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello World",
-		})
-	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Run the server
-	r.Run()
+	// creation endpoints
+	r.POST("/users", func(c *gin.Context) { createUser(c, db) })
+	r.POST("/channels", func(c *gin.Context) { createChannel(c, db) })
+	r.POST("/messages", func(c *gin.Context) { createMessage(c, db) })
+
+	// Listing endpoints
+	r.GET("/channels", func(c *gin.Context) { listChannels(c, db) })
+	r.GET("/messages", func(c *gin.Context) { listMessages(c, db) })
+
+	// Login endpoint
+	r.POST("/login", func(c *gin.Context) { login(c, db) })
+
+	err = r.Run(":8080")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func createUser(c *gin.Context, db *sql.DB) {
+
+}
+
+func login(c *gin.Context, db *sql.DB) {
+
+}
+
+func createChannel(c *gin.Context, db *sql.DB) {
+
+}
+
+func listChannels(c *gin.Context, db *sql.DB) {
+
+}
+
+func createMessage(c *gin.Context, db *sql.DB) {
+
+}
+
+func listMessages(c *gin.Context, db *sql.DB) {
+
 }
