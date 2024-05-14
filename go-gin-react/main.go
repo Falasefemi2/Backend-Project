@@ -49,18 +49,6 @@ func main() {
 		}
 	}(db)
 
-	// Create the "users" table if it doesn't exist
-	_, err = db.Exec(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL
-        );
-    `)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// Create the Gin router
 	r := gin.Default()
 
