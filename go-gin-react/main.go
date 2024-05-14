@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -74,6 +75,8 @@ func main() {
 
 	// Create the Gin router
 	r := gin.Default()
+
+	r.Use(cors.Default())
 
 	if err != nil {
 		log.Fatal(err)
