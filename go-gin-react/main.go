@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -39,7 +40,7 @@ func main() {
 	fmt.Println("Working directory:", wd)
 
 	// Open the SQLite database file
-	db, err := sql.Open("sqlite", wd+"/database.db")
+	db, err := sql.Open("sqlite3", wd+"/database.db")
 
 	defer func(db *sql.DB) {
 		err := db.Close()
@@ -47,6 +48,18 @@ func main() {
 			log.Fatal(err)
 		}
 	}(db)
+
+	// Create the "users" table if it doesn't exist
+	_, err = db.Exec(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            password TEXT NOT NULL
+        );
+    `)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Create the Gin router
 	r := gin.Default()
@@ -73,8 +86,31 @@ func main() {
 	}
 }
 
+// User creation endpoint
 func createUser(c *gin.Context, db *sql.DB) {
+	// parse JSON request body into User struct
+	var user User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
+	// Insert user into database
+	result, err := db.Exec("INSERT INTO users (username, password) VALUES (?,?)", user.Username, user.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get ID of newly inserted user
+	id, err := result.LastInsertId()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Return ID of newly inserted user
+	c.JSON(http.StatusOK, gin.H{"id": id, "message": "User created successfully"})
 }
 
 func login(c *gin.Context, db *sql.DB) {
