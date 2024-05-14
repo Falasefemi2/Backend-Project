@@ -49,6 +49,15 @@ func main() {
 		}
 	}(db)
 
+	// Create the channels table
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS channels (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL
+)`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Create the Gin router
 	r := gin.Default()
 
@@ -131,12 +140,72 @@ func login(c *gin.Context, db *sql.DB) {
 
 }
 
+// Channel creation endpoint
 func createChannel(c *gin.Context, db *sql.DB) {
+	// Parse JSON request body into Channel struct
+	var channel Channel
+	if err := c.ShouldBindJSON(&channel); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	stmt, err := db.Prepare("INSERT INTO channels (name) VALUES (?)")
+	if err != nil {
+		fmt.Println("Error preparing SQL statement:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer stmt.Close()
+
+	id, err := stmt.Exec(channel.Name)
+	if err != nil {
+		fmt.Println("Error executing SQL:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	lastInsertedID, err := id.LastInsertId()
+	if err != nil {
+		fmt.Println("Error getting last inserted ID:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Return ID of newly inserted channel
+	c.JSON(http.StatusOK, gin.H{"id": lastInsertedID, "message": "Channel created successfully"})
 
 }
 
+// Channel listing endpoint
 func listChannels(c *gin.Context, db *sql.DB) {
+	// Query database for channels
+	rows, err := db.Query("SELECT id, name FROM channels")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
+	// Create slice of channels
+	var channels []Channel
+
+	// Iterate over rows
+	for rows.Next() {
+		// Create new channel
+		var channel Channel
+
+		// Scan row into channel
+		err := rows.Scan(&channel.ID, &channel.Name)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Append channel to slice
+		channels = append(channels, channel)
+	}
+
+	// Return slice of channels
+	c.JSON(http.StatusOK, channels)
 }
 
 func createMessage(c *gin.Context, db *sql.DB) {
