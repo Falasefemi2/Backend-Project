@@ -9,10 +9,10 @@ CREATE TABLE channels (
     name TEXT NOT NULL
 );
 
--- CREATE TABLE messages (
---                           id INTEGER PRIMARY KEY,
---                           channel_id INTEGER NOT NULL,
---                           user_id INTEGER NOT NULL,
---                           message TEXT NOT NULL,
---                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );
+CREATE TABLE messages (
+                          id INTEGER PRIMARY KEY,
+                          channel_id INTEGER NOT NULL,
+                          user_id INTEGER NOT NULL,
+                          message TEXT NOT NULL,
+                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
